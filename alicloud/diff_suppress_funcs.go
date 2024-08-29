@@ -477,10 +477,13 @@ func ecsSecurityGroupRulePortRangeDiffSuppressFunc(k, old, new string, d *schema
 }
 
 func ecsSecurityGroupRulePreFixListIdDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	_, cidrIpExist := d.GetOk("cidr_ip")
-	_, ipv6CidrIpExist := d.GetOk("ipv6_cidr_ip")
-	_, SourceSecurityGroupIdExist := d.GetOk("source_security_group_id")
-	if cidrIpExist || SourceSecurityGroupIdExist || ipv6CidrIpExist {
+	_, sourceCidrIpExist := d.GetOk("source_cidr_ip")
+	_, destCidrIpExist := d.GetOk("dest_cidr_ip")
+	_, ipv6SourceCidrIpExist := d.GetOk("ipv6_source_cidr_ip")
+	_, ipv6DestCidrIpExist := d.GetOk("ipv6_dest_cidr_ip")
+	_, sourceGroupIdExist := d.GetOk("source_group_id")
+	_, destGroupIdExist := d.GetOk("dest_group_id")
+	if sourceCidrIpExist || destCidrIpExist || ipv6SourceCidrIpExist || ipv6DestCidrIpExist || sourceGroupIdExist || destGroupIdExist {
 		return true
 	}
 	return false

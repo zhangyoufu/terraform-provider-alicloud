@@ -341,16 +341,11 @@ func (s *EcsService) DescribeSecurityGroupAttribute(id string) (object map[strin
 }
 
 func (s *EcsService) DescribeSecurityGroupRule(id string) (rule ecs.Permission, err error) {
-	parts, err := ParseResourceId(id, 8)
+	parts, err := ParseResourceId(id, 10)
 	if err != nil {
 		return rule, WrapError(err)
 	}
-	groupId, direction, ipProtocol, portRange, nicType, cidr_ip, policy := parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6]
-	cidr_ip = strings.Replace(cidr_ip, "_", ":", -1)
-	priority, err := strconv.Atoi(parts[7])
-	if err != nil {
-		return rule, WrapError(err)
-	}
+	groupId, direction, priorityStr, policy, sourceIp, destIp, ipProtocol, portRange, sourcePortRange, nicType := parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], parts[8], parts[9]
 	request := ecs.CreateDescribeSecurityGroupAttributeRequest()
 	request.SecurityGroupId = groupId
 	request.Direction = direction
@@ -372,34 +367,45 @@ func (s *EcsService) DescribeSecurityGroupRule(id string) (rule ecs.Permission, 
 	}
 
 	for _, ru := range response.Permissions.Permission {
-		if strings.ToLower(string(ru.IpProtocol)) == ipProtocol && ru.PortRange == portRange {
-
-			var cidr string
-			var prefixListId string
-			if direction == string(DirectionIngress) {
-				if cidr = ru.SourceCidrIp; cidr == "" {
-					cidr = ru.SourceGroupId
-				}
-				if cidr == "" {
-					cidr = ru.Ipv6SourceCidrIp
-				}
-				prefixListId = ru.SourcePrefixListId
-			}
-
-			if direction == string(DirectionEgress) {
-				if cidr = ru.DestCidrIp; cidr == "" {
-					cidr = ru.DestGroupId
-				}
-				if cidr == "" {
-					cidr = ru.Ipv6DestCidrIp
-				}
-				prefixListId = ru.DestPrefixListId
-			}
-
-			if (cidr == cidr_ip || prefixListId == cidr_ip) && strings.ToLower(string(ru.Policy)) == policy && ru.Priority == strconv.Itoa(priority) {
-				return ru, nil
-			}
+		if strings.ToLower(string(ru.Policy)) != policy {
+			continue
 		}
+		if ru.Priority != priorityStr {
+			continue
+		}
+		if strings.ToLower(string(ru.IpProtocol)) != ipProtocol {
+			continue
+		}
+		if ru.PortRange != portRange {
+			continue
+		}
+		if ru.SourcePortRange != sourcePortRange {
+			continue
+		}
+		_sourceIp := ru.SourceCidrIp
+		if _sourceIp == "" {
+			_sourceIp = strings.Replace(ru.Ipv6SourceCidrIp, ":", "_", -1)
+		}
+		if _sourceIp == "" {
+			_sourceIp = ru.SourcePrefixListId
+		}
+		if _sourceIp == "" {
+			_sourceIp = ru.SourceGroupId
+		}
+		_destIp := ru.DestCidrIp
+		if _sourceIp == "" {
+			_sourceIp = strings.Replace(ru.Ipv6DestCidrIp, ":", "_", -1)
+		}
+		if _sourceIp == "" {
+			_sourceIp = ru.DestPrefixListId
+		}
+		if _sourceIp == "" {
+			_sourceIp = ru.DestGroupId
+		}
+		if _sourceIp != sourceIp || _destIp != destIp {
+			continue
+		}
+		return ru, nil
 	}
 
 	return rule, WrapErrorf(Error(GetNotFoundMessage("Security Group Rule", id)), NotFoundMsg, ProviderERROR, response.RequestId)
