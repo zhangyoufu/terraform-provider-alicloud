@@ -25,6 +25,11 @@ func resourceAlicloudEcsAutoSnapshotPolicy() *schema.Resource {
 			Delete: schema.DefaultTimeout(3 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
+			"resource_group_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 			"copied_snapshots_retention_days": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -105,6 +110,9 @@ func resourceAlicloudEcsAutoSnapshotPolicyCreate(d *schema.ResourceData, meta in
 			count++
 		}
 	}
+	if v, ok := d.GetOk("resource_group_id"); ok {
+		request["ResourceGroupId"] = v
+	}
 	if v, ok := d.GetOk("target_copy_regions"); ok {
 		request["TargetCopyRegions"] = convertListToJsonString(v.(*schema.Set).List())
 	}
@@ -160,6 +168,7 @@ func resourceAlicloudEcsAutoSnapshotPolicyRead(d *schema.ResourceData, meta inte
 	d.Set("retention_days", formatInt(object["RetentionDays"]))
 	d.Set("status", object["Status"])
 	d.Set("tags", tagsToMap(object["Tags"].(map[string]interface{})["Tag"]))
+	d.Set("resource_group_id", object["ResourceGroupId"])
 	if object["TargetCopyRegions"] != nil {
 		if targetCopyRegions, err := convertJsonStringToList(object["TargetCopyRegions"].(string)); err != nil {
 			return WrapError(err)
