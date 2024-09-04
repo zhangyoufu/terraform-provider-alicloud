@@ -178,6 +178,11 @@ func resourceAliCloudInstance() *schema.Resource {
 				DiffSuppressFunc: ecsSystemDiskPerformanceLevelSuppressFunc,
 				ValidateFunc:     StringInSlice([]string{"PL0", "PL1", "PL2", "PL3"}, false),
 			},
+			"system_disk_bursting_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 			"system_disk_auto_snapshot_policy_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -709,6 +714,10 @@ func resourceAliCloudInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		request["SystemDisk.PerformanceLevel"] = v
 	}
 
+	if v, ok := d.GetOk("system_disk_bursting_enabled"); ok {
+		request["SystemDisk.BurstingEnabled"] = v
+	}
+
 	if v, ok := d.GetOk("system_disk_category"); ok {
 		request["SystemDisk.Category"] = v
 	}
@@ -1150,6 +1159,7 @@ func resourceAliCloudInstanceRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("system_disk_id", disk.DiskId)
 		d.Set("volume_tags", ecsService.tagsToMap(disk.Tags.Tag))
 		d.Set("system_disk_performance_level", disk.PerformanceLevel)
+		d.Set("system_disk_bursting_enabled", disk.BurstingEnabled)
 	}
 	d.Set("instance_name", instance.InstanceName)
 	d.Set("resource_group_id", instance.ResourceGroupId)
@@ -1525,13 +1535,14 @@ func resourceAliCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 			d.SetPartial("system_disk_auto_snapshot_policy_id")
 		}
 
-		if d.HasChange("system_disk_name") || d.HasChange("system_disk_description") {
+		if d.HasChange("system_disk_name") || d.HasChange("system_disk_description") || d.HasChange("system_disk_bursting_enabled") {
 			var response map[string]interface{}
 			modifyDiskAttributeReq := map[string]interface{}{
 				"DiskId": disk["DiskId"],
 			}
 			modifyDiskAttributeReq["DiskName"] = d.Get("system_disk_name")
 			modifyDiskAttributeReq["Description"] = d.Get("system_disk_description")
+			modifyDiskAttributeReq["BurstingEnabled"] = d.Get("system_disk_bursting_enabled")
 			action := "ModifyDiskAttribute"
 			wait := incrementalWait(3*time.Second, 3*time.Second)
 			err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
@@ -1551,6 +1562,7 @@ func resourceAliCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 			}
 			d.SetPartial("system_disk_name")
 			d.SetPartial("system_disk_description")
+			d.SetPartial("system_disk_bursting_enabled")
 		}
 	}
 
