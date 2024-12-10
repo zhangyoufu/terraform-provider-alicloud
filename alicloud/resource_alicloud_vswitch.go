@@ -237,6 +237,7 @@ func resourceAliCloudVpcVswitchRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("vswitch_name", objectRaw["VSwitchName"])
 	d.Set("vpc_id", objectRaw["VpcId"])
 	d.Set("zone_id", objectRaw["ZoneId"])
+	d.Set("enable_ipv6", objectRaw["EnabledIpv6"])
 
 	tagsMaps, _ := jsonpath.Get("$.Tags.Tag", objectRaw)
 	d.Set("tags", tagsToMap(tagsMaps))
@@ -250,9 +251,6 @@ func resourceAliCloudVpcVswitchRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("ipv6_cidr_block_mask", -1)
 	}
 
-	if enableIpv6, ok := d.GetOkExists("enable_ipv6"); ok {
-		d.Set("enable_ipv6", enableIpv6)
-	}
 	return nil
 }
 
