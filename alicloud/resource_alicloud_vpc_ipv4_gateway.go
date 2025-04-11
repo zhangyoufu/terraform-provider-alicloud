@@ -4,7 +4,6 @@ package alicloud
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -49,9 +48,8 @@ func resourceAliCloudVpcIpv4Gateway() *schema.Resource {
 				Computed: true,
 			},
 			"ipv4_gateway_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: StringMatch(regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9-._]{1,127}$"), "The name of the IPv4 gateway. The name must be 2 to 128 characters in length, and can contain letters, digits, periods (.), underscores (_), and hyphens (-). It must start with a letter."),
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"ipv4_gateway_route_table_id": {
 				Type:     schema.TypeString,
