@@ -7,10 +7,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net"
+	"net/netip"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -1867,26 +1868,63 @@ func bytesToTB(bytes int64) float64 {
 	return float64(bytes) / float64(TiB)
 }
 
-func compressIPv6OrCIDR(input string) (string, error) {
+var (
+	errIncorrectAddressFamily = errors.New("incorrect address family")
+	errIPv6ZoneNotAllowed = errors.New("IPv6 zone not allowed")
+)
+
+func compressIPv4orCIDR(input string) (string, error) {
 	if input == "" {
 		return input, nil
 	}
 	if strings.Contains(input, "/") {
-		ip, _, err := net.ParseCIDR(input)
+		prefix, err := netip.ParsePrefix(input)
 		if err != nil {
 			return "", err
 		}
-		if ip == nil {
-			return input, nil
+		if !prefix.Addr().Is4() {
+			return "", errIncorrectAddressFamily
 		}
-		mask := strings.SplitN(input, "/", 2)[1]
-		return fmt.Sprintf("%s/%s", ip.String(), mask), nil
+		return prefix.String(), nil
+	} else {
+		addr, err := netip.ParseAddr(input)
+		if err != nil {
+			return "", err
+		}
+		if !addr.Is4() {
+			return "", errIncorrectAddressFamily
+		}
+		return addr.String(), nil
 	}
-	ip := net.ParseIP(input)
-	if ip == nil {
+}
+
+func compressIPv6orCIDR(input string) (string, error) {
+	if input == "" {
 		return input, nil
 	}
-	return ip.String(), nil
+	if strings.Contains(input, "/") {
+		prefix, err := netip.ParsePrefix(input)
+		if err != nil {
+			return "", err
+		}
+		if !prefix.Addr().Is6() {
+			return "", errIncorrectAddressFamily
+		}
+		// netip ensures that IPv6 zones cannot be present in a prefix
+		return prefix.String(), nil
+	} else {
+		addr, err := netip.ParseAddr(input)
+		if err != nil {
+			return "", err
+		}
+		if !addr.Is6() {
+			return "", errIncorrectAddressFamily
+		}
+		if addr.Zone() != "" {
+			return "", errIPv6ZoneNotAllowed
+		}
+		return addr.String(), nil
+	}
 }
 
 func randIntRange(min int, max int) int {
