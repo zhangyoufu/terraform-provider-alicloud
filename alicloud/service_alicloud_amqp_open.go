@@ -45,21 +45,20 @@ func (s *AmqpOpenService) DescribeAmqpVirtualHost(id string) (object map[string]
 		if err != nil {
 			return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
 		}
-		v, err := jsonpath.Get("$.Data.VirtualHosts", response)
-		if err != nil {
-			return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Data.VirtualHosts", response)
-		}
-		if len(v.([]interface{})) < 1 {
+		data, _ := response["Data"].(map[string]any)
+		virtualHosts, _ := data["VirtualHosts"].([]any)
+		if len(virtualHosts) < 1 {
 			return object, WrapErrorf(NotFoundErr("Amqp", id), NotFoundWithResponse, response)
 		}
-		for _, v := range v.([]interface{}) {
-			if fmt.Sprint(v.(map[string]interface{})["Name"]) == parts[1] {
+		for _, _virtualHost := range virtualHosts {
+			virtualHost, _ := _virtualHost.(map[string]any)
+			if virtualHost["Name"].(string) == parts[1] {
 				idExist = true
-				return v.(map[string]interface{}), nil
+				return virtualHost, nil
 			}
 		}
 
-		if nextToken, ok := response["NextToken"].(string); ok && nextToken != "" {
+		if nextToken, _ := data["NextToken"].(string); nextToken != "" {
 			request["NextToken"] = nextToken
 		} else {
 			break
@@ -103,21 +102,20 @@ func (s *AmqpOpenService) DescribeAmqpQueue(id string) (object map[string]interf
 		if err != nil {
 			return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
 		}
-		v, err := jsonpath.Get("$.Data.Queues", response)
-		if err != nil {
-			return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Data.Queues", response)
-		}
-		if len(v.([]interface{})) < 1 {
+		data, _ := response["Data"].(map[string]any)
+		queues, _ := data["Queues"].([]any)
+		if len(queues) < 1 {
 			return object, WrapErrorf(NotFoundErr("Amqp", id), NotFoundWithResponse, response)
 		}
-		for _, v := range v.([]interface{}) {
-			if fmt.Sprint(v.(map[string]interface{})["Name"]) == parts[2] {
+		for _, _queue := range queues {
+			queue, _ := _queue.(map[string]any)
+			if queue["Name"].(string) == parts[2] {
 				idExist = true
-				return v.(map[string]interface{}), nil
+				return queue, nil
 			}
 		}
 
-		if nextToken, ok := response["NextToken"].(string); ok && nextToken != "" {
+		if nextToken, _ := data["NextToken"].(string); nextToken != "" {
 			request["NextToken"] = nextToken
 		} else {
 			break
@@ -164,21 +162,20 @@ func (s *AmqpOpenService) DescribeAmqpExchange(id string) (object map[string]int
 			}
 			return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
 		}
-		v, err := jsonpath.Get("$.Data.Exchanges", response)
-		if err != nil {
-			return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Data.Exchanges", response)
-		}
-		if len(v.([]interface{})) < 1 {
+		data, _ := response["Data"].(map[string]any)
+		exchanges, _ := data["Exchanges"].([]any)
+		if len(exchanges) < 1 {
 			return object, WrapErrorf(NotFoundErr("Amqp", id), NotFoundWithResponse, response)
 		}
-		for _, v := range v.([]interface{}) {
-			if fmt.Sprint(v.(map[string]interface{})["Name"]) == parts[2] {
+		for _, _exchange := range exchanges {
+			exchange, _ := _exchange.(map[string]any)
+			if exchange["Name"].(string) == parts[2] {
 				idExist = true
-				return v.(map[string]interface{}), nil
+				return exchange, nil
 			}
 		}
 
-		if nextToken, ok := response["NextToken"].(string); ok && nextToken != "" {
+		if nextToken, _ := data["NextToken"].(string); nextToken != "" {
 			request["NextToken"] = nextToken
 		} else {
 			break
@@ -215,21 +212,20 @@ func (s *AmqpOpenService) DescribeAmqpInstance(id string) (object map[string]int
 		if err != nil {
 			return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
 		}
-		v, err := jsonpath.Get("$.Data.Instances", response)
-		if err != nil {
-			return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Data.Instances", response)
-		}
-		if len(v.([]interface{})) < 1 {
+		data, _ := response["Data"].(map[string]any)
+		instances, _ := data["Instances"].([]any)
+		if len(instances) < 1 {
 			return object, WrapErrorf(NotFoundErr("Amqp", id), NotFoundWithResponse, response)
 		}
-		for _, v := range v.([]interface{}) {
-			if fmt.Sprint(v.(map[string]interface{})["InstanceId"]) == id {
+		for _, _instance := range instances {
+			instance, _ := _instance.(map[string]any)
+			if instance["InstanceId"].(string) == id {
 				idExist = true
-				return v.(map[string]interface{}), nil
+				return instance, nil
 			}
 		}
 
-		if nextToken, ok := response["NextToken"].(string); ok && nextToken != "" {
+		if nextToken, _ := data["NextToken"].(string); nextToken != "" {
 			request["NextToken"] = nextToken
 		} else {
 			break
@@ -300,23 +296,20 @@ func (s *AmqpOpenService) DescribeAmqpBinding(id string) (object map[string]inte
 			return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
 		}
 
-		resp, err := jsonpath.Get("$.Data.Bindings", response)
-		if err != nil {
-			return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Data.Bindings", response)
-		}
-
-		if v, ok := resp.([]interface{}); !ok || len(v) < 1 {
+		data, _ := response["Data"].(map[string]any)
+		bindings, _ := data["Bindings"].([]any)
+		if len(bindings) < 1 {
 			return object, WrapErrorf(NotFoundErr("Amqp:Binding", id), NotFoundWithResponse, response)
 		}
-
-		for _, v := range resp.([]interface{}) {
-			if fmt.Sprint(v.(map[string]interface{})["SourceExchange"]) == parts[2] && fmt.Sprint(v.(map[string]interface{})["DestinationName"]) == parts[3] {
+		for _, _binding := range bindings {
+			binding, _ := _binding.(map[string]any)
+			if binding["SourceExchange"].(string) == parts[2] && binding["DestinationName"].(string) == parts[3] {
 				idExist = true
-				return v.(map[string]interface{}), nil
+				return binding, nil
 			}
 		}
 
-		if nextToken, ok := response["NextToken"].(string); ok && nextToken != "" {
+		if nextToken, _ := data["NextToken"].(string); nextToken != "" {
 			request["NextToken"] = nextToken
 		} else {
 			break
