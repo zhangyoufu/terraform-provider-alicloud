@@ -181,7 +181,7 @@ func resourceAlicloudRdsAccountCreate(d *schema.ResourceData, meta interface{}) 
 	} else {
 		return WrapError(Error(`[ERROR] Argument "instance_id" or "db_instance_id" must be set one!`))
 	}
-	stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, rdsService.RdsDBInstanceStateRefreshFunc(request["DBInstanceId"].(string), []string{"Deleting"}))
+	stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 0, rdsService.RdsDBInstanceStateRefreshFunc(request["DBInstanceId"].(string), []string{"Deleting"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -205,11 +205,11 @@ func resourceAlicloudRdsAccountCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(fmt.Sprint(request["DBInstanceId"], ":", request["AccountName"]))
-	stateConf = BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, rdsService.RdsAccountStateRefreshFunc(d.Id(), []string{}))
+	stateConf = BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 0, rdsService.RdsAccountStateRefreshFunc(d.Id(), []string{})) // +0.660s for each DescribeRdsAccount
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	stateConf = BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, rdsService.RdsDBInstanceStateRefreshFunc(request["DBInstanceId"].(string), []string{"Deleting"}))
+	stateConf = BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 0, rdsService.RdsDBInstanceStateRefreshFunc(request["DBInstanceId"].(string), []string{"Deleting"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -285,7 +285,7 @@ func resourceAlicloudRdsAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, rdsService.RdsAccountStateRefreshFunc(d.Id(), []string{}))
+		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 0, rdsService.RdsAccountStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -332,7 +332,7 @@ func resourceAlicloudRdsAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, rdsService.RdsAccountStateRefreshFunc(d.Id(), []string{}))
+		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 0, rdsService.RdsAccountStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -385,7 +385,7 @@ func resourceAlicloudRdsAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, rdsService.RdsAccountStateRefreshFunc(d.Id(), []string{}))
+		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 0, rdsService.RdsAccountStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -451,7 +451,7 @@ func resourceAlicloudRdsAccountDelete(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
-	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, rdsService.RdsAccountStateRefreshFunc(d.Id(), []string{}))
+	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 0, rdsService.RdsAccountStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
