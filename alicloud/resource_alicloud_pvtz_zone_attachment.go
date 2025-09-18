@@ -59,6 +59,10 @@ func resourceAlicloudPvtzZoneAttachment() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"vpc_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -104,6 +108,9 @@ func resourceAlicloudPvtzZoneAttachmentCreate(d *schema.ResourceData, meta inter
 			vpcs[i]["RegionId"] = regionId
 			vpcIdMap[j.(map[string]interface{})["vpc_id"].(string)] = j.(map[string]interface{})["vpc_id"].(string)
 			vpcs[i]["VpcId"] = j.(map[string]interface{})["vpc_id"]
+			if j.(map[string]interface{})["vpc_type"] != nil {
+				vpcs[i]["VpcType"] = j.(map[string]interface{})["vpc_type"]
+			}
 		}
 		request["Vpcs"] = vpcs
 
@@ -168,6 +175,7 @@ func resourceAlicloudPvtzZoneAttachmentRead(d *schema.ResourceData, meta interfa
 				temp1 := map[string]interface{}{
 					"region_id": m1["RegionId"],
 					"vpc_id":    m1["VpcId"],
+					"vpc_type":  m1["VpcType"],
 				}
 				vpcIds = append(vpcIds, m1["VpcId"].(string))
 				vpc = append(vpc, temp1)
@@ -202,6 +210,10 @@ func resourceAlicloudPvtzZoneAttachmentUpdate(d *schema.ResourceData, meta inter
 				}
 				vpcs[i]["RegionId"] = regionId
 				vpcs[i]["VpcId"] = j.(map[string]interface{})["vpc_id"]
+				vpcType := j.(map[string]interface{})["vpc_type"]
+				if vpcType != "" {
+					vpcs[i]["VpcType"] = vpcType
+				}
 				vpcIdMap[j.(map[string]interface{})["vpc_id"].(string)] = j.(map[string]interface{})["vpc_id"].(string)
 			}
 		} else {
