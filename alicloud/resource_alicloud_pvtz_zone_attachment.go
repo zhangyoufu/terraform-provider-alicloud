@@ -59,6 +59,10 @@ func resourceAlicloudPvtzZoneAttachment() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"vpc_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -104,6 +108,9 @@ func resourceAlicloudPvtzZoneAttachmentCreate(d *schema.ResourceData, meta inter
 			vpcs[i]["RegionId"] = regionId
 			vpcIdMap[j.(map[string]interface{})["vpc_id"].(string)] = j.(map[string]interface{})["vpc_id"].(string)
 			vpcs[i]["VpcId"] = j.(map[string]interface{})["vpc_id"]
+			if j.(map[string]interface{})["vpc_type"] != nil {
+				vpcs[i]["VpcType"] = j.(map[string]interface{})["vpc_type"]
+			}
 		}
 		request["Vpcs"] = vpcs
 
