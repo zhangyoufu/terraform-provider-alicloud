@@ -109,6 +109,14 @@ func resourceAlicloudOtsSearchIndex() *schema.Resource {
 											string(OtsSearchFuzzy)},
 											false),
 									},
+									"date_formats": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
 									"enable_sort_and_agg": {
 										Type:     schema.TypeBool,
 										Optional: true,
@@ -365,6 +373,15 @@ func parseFieldSchema(fsMap map[string]interface{}) (*tablestore.FieldSchema, er
 			return nil, WrapError(err)
 		}
 		fieldSchema.Analyzer = &analyzer
+	}
+	if v, ok := fsMap["date_formats"]; ok {
+		dateFormatsArg := v.([]interface{})
+		var dateFormats []string
+		for _, dateFormat := range dateFormatsArg {
+			dateFormat := dateFormat.(string)
+			dateFormats = append(dateFormats, dateFormat)
+		}
+		fieldSchema.DateFormats = dateFormats
 	}
 	if v, ok := fsMap["enable_sort_and_agg"]; ok {
 		enableSortAndAgg := v.(bool)
